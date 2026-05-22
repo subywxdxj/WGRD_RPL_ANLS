@@ -1,0 +1,4 @@
+show all decks: [y]
+minimal games to show player: [1]
+compare deck names/content: [n]
+path to replay files: [C:\Users\WIN-M\Saved Games\EugenSystems\WarGame3]

@@ -13,8 +13,6 @@
 #include <Windows.h>
 
 
-//#include <bits/stdc++.h>
-
 struct DeckMatch
 {
     std::wstring name;//name
@@ -53,20 +51,16 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 
 int main()
 {
-
    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
    int horizontal = 0;
    int vertical = 0;
    GetDesktopResolution(horizontal, vertical);
 
-   //std::cout << horizontal << " " << vertical << "\n";
-
    HWND hWnd = GetConsoleWindow();
 
    MoveWindow(hWnd, 0, 0, horizontal / 5 * 2, vertical - (vertical / 33), TRUE);
 
-   //1681784 - cunt
    SetConsoleOutputCP(CP_UTF8);
 
    std::wstring name = L"n";
@@ -78,7 +72,7 @@ int main()
 
    char result[MAX_PATH];
    std::string Settings = "WG_SET.txt";//path to settings file
-   std::string replayPath;//path to replays
+   std::string replayPath;//path to replays (stored in settings file)
 
    std::ifstream fileSettings;
    fileSettings.open(Settings);
