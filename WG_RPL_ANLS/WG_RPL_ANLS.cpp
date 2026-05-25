@@ -60,21 +60,16 @@ int main()
 
    SetConsoleOutputCP(CP_UTF8);
 
-   std::string name = "";
-   std::string server = "";
-   std::string pid = "n";
+   //settings
    std::string showalldecks = "n";
    int mingames = 1;
    std::string compareAll = "n";
 
-   char result[MAX_PATH];
-   std::string Settings = "WG_SET.txt";//path to settings file
+   const std::string Settings = "WG_SET.txt";//path to settings file
    std::string replayPath;//path to replays (stored in settings file)
 
    std::ifstream fileSettings;
    fileSettings.open(Settings);
-
-   char chS = 0;
 
    std::string text;
    if (!std::getline(fileSettings, text))
@@ -116,10 +111,13 @@ int main()
    int restart = 1;
    while (restart)
    {
+       std::string name = "";
+       std::string server = "";
+       std::string pid = "n";
+
         system("cls");
 
         std::cout << "Find player by name (name/n): ";//rip trying to find player with nickname "n"
-        name = "";
         while (name == "")
         {
             std::getline(std::cin, name);
@@ -132,7 +130,6 @@ int main()
             std::cin >> pid;
         }
         std::cout << "[autosearch] Find server by name (name/n) : ";
-        server = "";
         while (server == "")
         {
             std::getline(std::cin, server);
