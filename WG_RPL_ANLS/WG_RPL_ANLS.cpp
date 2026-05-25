@@ -4,11 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <filesystem>
-#include <stdio.h>
 
 #include <fstream>
-
-#include <locale>
 
 #include <Windows.h>
 
