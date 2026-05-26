@@ -29,7 +29,16 @@ struct player
     std::vector<std::pair<std::string, std::string>> decks;
     std::string name;
     std::string pid;
-    int count;
+    int count = 1;
+};
+
+struct playerTarget
+{
+    std::string name;
+    std::string pid;
+    std::string deckName;
+    std::string deckContent;
+    int id = -1;//in case of multiple targets in same replay
 };
 
 void GetDesktopResolution(int& horizontal, int& vertical)
@@ -122,7 +131,6 @@ int main()
         {
             std::getline(std::cin, name);
         }
-        std::transform(name.begin(), name.end(), name.begin(), ::tolower);//transform name input to lower case for more general comparison
 
         if (name == "n")
         {
@@ -143,10 +151,9 @@ int main()
 
 
         std::vector<std::string> replayNames;
-        std::vector<std::pair<std::string, std::string>> PlayersTarget;
+        std::vector<playerTarget> PlayersTarget;
         std::vector<std::string> serverNames;
         std::vector<std::string> GameInfoV;
-        std::vector<std::pair<std::string, std::string>> TargetDecks;
 
         for (const auto& replayFullPath : std::filesystem::directory_iterator(replayPath))
         {
@@ -185,6 +192,7 @@ int main()
                 fileRead.close();
 
 
+                //quick general checks
                 if (name != "n")
                 {
                     if (FileStr.find(name) > 12000) { continue; }//skip if no name match in file header (!FileStr.find(name) doesn't work coz result value is not allocated if no match???)
@@ -213,15 +221,23 @@ int main()
 
                 int start = 0;
 
-                while (FileStr.find("\"PlayerName\":\"", start) != -1)
+                bool foundTarget = false;
+
+                while (FileStr.find("\"PlayerUserId\":\"", start) != -1)
                 {
+                    int puidS = FileStr.find("\"PlayerUserId\":\"", start);
+                    int puidE = FileStr.find("\",\"", puidS + 16);
+                    std::string playerUID = FileStr.substr(puidS + 16, puidE - (puidS + 16));//extract PUID
+
                     int pnS = FileStr.find("\"PlayerName\":\"", start);
                     int pnE = FileStr.find("\",\"", pnS + 14);
                     std::string playerName = FileStr.substr(pnS + 14, pnE - (pnS + 14));//extract player name
 
-                    int puidS = FileStr.find("\"PlayerUserId\":\"", pnS - 160);
-                    int puidE = FileStr.find("\",\"", puidS + 16);
-                    std::string playerUID = FileStr.substr(puidS + 16, puidE - (puidS + 16));//extract PUID
+
+                    if (playerUID == "18446744073709551615")//took me a while to understand its not a bug
+                    {
+                        playerName = "Bot";
+                    }
 
                     NAME_PID transf0;
                     transf0.name = playerName;
@@ -242,73 +258,89 @@ int main()
                     DecksReplay.push_back(std::pair(TargetDeck.first, TargetDeck.second));//save current replay decks (same order as players)
 
 
-                    start = pnE;
+                    start = dE;
                     if (name != "n")//search by name
                     {
-                        std::string playerNameLower = playerName;
-                        std::transform(playerNameLower.begin(), playerNameLower.end(), playerNameLower.begin(), ::tolower);//transform name to lower case
-
-                        if (playerNameLower.find(name, 0) < 100)//add to target list if name matches
+                        if (playerName.find(name, 0) < 100)//add to target list if name matches
                         {
-                            TargetDecks.push_back(std::pair(TargetDeck.first, TargetDeck.second));
-                            PlayersTarget.push_back(std::pair(playerName, playerUID));
+                            playerTarget buffer;
+                            buffer.name = playerName;
+                            buffer.pid = playerUID;
+
+                            buffer.deckName = TargetDeck.first;
+                            buffer.deckContent = TargetDeck.second;
+
+                            buffer.id = replayNames.size();
+                            PlayersTarget.push_back(buffer);
+                            foundTarget = true;
                         }
                     }
                     else if (pid != "n")//search by pid
                     {
                         if (playerUID.find(pid) < 100)//add to target list if pid matches
                         {
-                            TargetDecks.push_back(std::pair(TargetDeck.first, TargetDeck.second));
-                            PlayersTarget.push_back(std::pair(playerName, playerUID));
+                            playerTarget buffer;
+                            buffer.name = playerName;
+                            buffer.pid = playerUID;
+
+                            buffer.deckName = TargetDeck.first;
+                            buffer.deckContent = TargetDeck.second;
+
+                            buffer.id = replayNames.size();
+                            PlayersTarget.push_back(buffer);
+                            foundTarget = true;
                         }
                     }
                 }
 
-                for (int r = 0; r < playersReplay.size(); r++)//update player list with players from current list
+                if (foundTarget || (pid == "n" && name == "n"))//save replay data if the replay meets the requirements
                 {
-                    bool newPlayer = true;
-                    for (int t = 0; t < players.size(); t++)//check for copies
+                    for (int r = 0; r < playersReplay.size(); r++)//update player list with players from current list
                     {
-                        if (players[t].pid == playersReplay[r].pid)//if pid already exists
+                        bool newPlayer = true;
+                        for (int t = 0; t < players.size(); t++)//check for copies
                         {
-                            newPlayer = false;
-                            players[t].count++;//count++
+                            if (players[t].pid == playersReplay[r].pid)//if pid already exists
+                            {
+                                newPlayer = false;
+                                players[t].count++;//count++
 
-                            bool newDeck = true;
-                            for (int deckN = 0; deckN < players[t].decks.size(); deckN++)//check if the deck is new
-                            {
-                                if (DecksReplay[r].second == players[t].decks[deckN].second)
+                                bool newDeck = true;
+                                for (int deckN = 0; deckN < players[t].decks.size(); deckN++)//check if the deck is new
                                 {
-                                    newDeck = false;
+                                    if (DecksReplay[r].second == players[t].decks[deckN].second)
+                                    {
+                                        newDeck = false;
+                                    }
                                 }
+                                if (newDeck)
+                                {
+                                    players[t].decks.push_back(DecksReplay[r]);
+                                }
+                                break;
                             }
-                            if (newDeck)
-                            {
-                                players[t].decks.push_back(DecksReplay[r]);
-                            }
-                            break;
+                        }
+                        if (newPlayer)
+                        {
+                            player transf;
+                            transf.decks.push_back(DecksReplay[r]);//save first deck
+                            transf.pid = playersReplay[r].pid;
+                            transf.name = playersReplay[r].name;
+                            transf.count = 1;
+
+                            players.push_back(transf);//save to global player list
                         }
                     }
-                    if (newPlayer)
-                    {
-                        player transf;
-                        transf.decks.push_back(DecksReplay[r]);//save first deck
-                        transf.pid = playersReplay[r].pid;
-                        transf.name = playersReplay[r].name;
-                        transf.count = 1;
+                    int giS = FileStr.find("\",\"Map\":\"");
+                    int giE = FileStr.find("\",\"", giS + 9);
 
-                        players.push_back(transf);//save to global player list
-                    }
+                    GameInfo = FileStr.substr(giS + 9, giE - (giS + 9));
+
+
+                    GameInfoV.push_back(GameInfo);
+                    serverNames.push_back(serverName);
+                    replayNames.push_back(replayName);//save replay name
                 }
-                int giS = FileStr.find("\",\"Map\":\"");
-                int giE = FileStr.find("\",\"", giS + 9);
-
-                GameInfo = FileStr.substr(giS + 9, giE - (giS + 9));
-
-
-                GameInfoV.push_back(GameInfo);
-                serverNames.push_back(serverName);
-                replayNames.push_back(replayName);//save replay name
                 
 
             }
@@ -322,15 +354,21 @@ int main()
             SetConsoleTextAttribute(hConsole, 6);
             if (PlayersTarget.size() != 0)
             {
-                std::cout << "\nPlayer: ";
-                SetConsoleTextAttribute(hConsole, 2);
-                std::cout << PlayersTarget[i].first;
-                SetConsoleTextAttribute(hConsole, 6);
-                std::cout << "\nPID: " << PlayersTarget[i].second << "\nDeck: ";
-                SetConsoleTextAttribute(hConsole, 11);
-                std::cout << TargetDecks[i].first;
-                SetConsoleTextAttribute(hConsole, 6);
-                std::cout << ": " << TargetDecks[i].second;
+                for (int j = i; j < PlayersTarget.size(); j++)//in case of mulitple targets in same replay
+                {
+                    if (PlayersTarget[j].id == i)
+                    {
+                        std::cout << "\nPlayer: ";
+                        SetConsoleTextAttribute(hConsole, 2);
+                        std::cout << PlayersTarget[j].name;
+                        SetConsoleTextAttribute(hConsole, 6);
+                        std::cout << "\nPID: " << PlayersTarget[j].pid << "\nDeck: ";
+                        SetConsoleTextAttribute(hConsole, 11);
+                        std::cout << PlayersTarget[j].deckName;
+                        SetConsoleTextAttribute(hConsole, 6);
+                        std::cout << ": " << PlayersTarget[j].deckContent;
+                    }
+                }
             }
             SetConsoleTextAttribute(hConsole, 5);
             std::cout << "\nServer: " << serverNames[i] << "\nMAP: " << GameInfoV[i];
@@ -338,7 +376,7 @@ int main()
             std::cout << "\n" << i + 1 << " " << replayNames[i];
         }
         SetConsoleTextAttribute(hConsole, 4);
-        std::cout << "\n\nPLAYERS (" << players.size() << ") FROM THE GAMES (" << replayNames.size() << ")\n";
+        std::cout << "\n\nPLAYERS (" << players.size() << ")\nTARGETS (" << PlayersTarget.size() << ") FROM THE GAMES (" << replayNames.size() << ")\n";
 
         auto compCount = [](player a, player b)
         {
