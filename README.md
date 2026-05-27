@@ -17,5 +17,4 @@ Personal notes:<br />
 It's an old project and at the time it went quite a bit further than I initially anticipated,<br />
 which resulted in it being huge blob of barely cohesive code.<br />
 I don't feel like rewriting it from the scratch and there's only so much you can do with information from the replays.<br />
-Only possible update is adding more detailed analysis of decks which are basically base64 encoded array of unit ID's,<br />
-but I'm not sure wether will I do that.
+Only possible update (besides small quality updates) is adding more detailed analysis of decks which are basically base64 encoded array of unit ID's,<br />
