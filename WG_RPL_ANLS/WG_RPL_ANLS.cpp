@@ -9,6 +9,16 @@
 
 #include <Windows.h>
 
+enum console_color
+{
+    CON_YLW = 6,
+    CON_PRP = 5,
+    CON_RED = 4,
+    CON_CYN = 3,
+    CON_GRN = 2,
+    CON_BLU = 9,
+    CON_DEF = 7,
+};
 
 struct DeckMatch
 {
@@ -345,13 +355,13 @@ int main()
 
             }
         }
-        SetConsoleTextAttribute(hConsole, 2);
+        SetConsoleTextAttribute(hConsole, CON_GRN);
         std::cout << "\n\n";
 
         for (int i = 0; i < replayNames.size(); i++)//Full game info + selected player (and his deck)
         {
             std::cout << "\n";
-            SetConsoleTextAttribute(hConsole, 6);
+            SetConsoleTextAttribute(hConsole, CON_YLW);
             if (PlayersTarget.size() != 0)
             {
                 for (int j = i; j < PlayersTarget.size(); j++)//in case of mulitple targets in same replay
@@ -359,23 +369,23 @@ int main()
                     if (PlayersTarget[j].id == i)
                     {
                         std::cout << "\nPlayer: ";
-                        SetConsoleTextAttribute(hConsole, 2);
+                        SetConsoleTextAttribute(hConsole, CON_GRN);
                         std::cout << PlayersTarget[j].name;
-                        SetConsoleTextAttribute(hConsole, 6);
+                        SetConsoleTextAttribute(hConsole, CON_YLW);
                         std::cout << "\nPID: " << PlayersTarget[j].pid << "\nDeck: ";
-                        SetConsoleTextAttribute(hConsole, 11);
+                        SetConsoleTextAttribute(hConsole, CON_CYN);
                         std::cout << PlayersTarget[j].deckName;
-                        SetConsoleTextAttribute(hConsole, 6);
+                        SetConsoleTextAttribute(hConsole, CON_YLW);
                         std::cout << ": " << PlayersTarget[j].deckContent;
                     }
                 }
             }
-            SetConsoleTextAttribute(hConsole, 5);
+            SetConsoleTextAttribute(hConsole, CON_PRP);
             std::cout << "\nServer: " << serverNames[i] << "\nMAP: " << GameInfoV[i];
-            SetConsoleTextAttribute(hConsole, 2);
+            SetConsoleTextAttribute(hConsole, CON_GRN);
             std::cout << "\n" << i + 1 << " " << replayNames[i];
         }
-        SetConsoleTextAttribute(hConsole, 4);
+        SetConsoleTextAttribute(hConsole, CON_RED);
         std::cout << "\n\nPLAYERS (" << players.size() << ")\nTARGETS (" << PlayersTarget.size() << ") FROM THE GAMES (" << replayNames.size() << ")\n";
 
         auto compCount = [](player a, player b)
@@ -390,25 +400,25 @@ int main()
             {
                 continue;
             }
-            SetConsoleTextAttribute(hConsole, 6);
+            SetConsoleTextAttribute(hConsole, CON_YLW);
             std::cout << "\n\n" << i << " PlayerName: ";
-            SetConsoleTextAttribute(hConsole, 2);
+            SetConsoleTextAttribute(hConsole, CON_GRN);
             std::cout << players[i].name;
-            SetConsoleTextAttribute(hConsole, 6);
+            SetConsoleTextAttribute(hConsole, CON_YLW);
             std::cout << "    PID: " << players[i].pid << " Count: ";
-            SetConsoleTextAttribute(hConsole, 2);
+            SetConsoleTextAttribute(hConsole, CON_GRN);
             std::cout << players[i].count;
 
             if (showalldecks == "y")
             {
-                SetConsoleTextAttribute(hConsole, 6);//Show decks
+                SetConsoleTextAttribute(hConsole, CON_YLW);//Show decks
                 for (int j = 0; j < players[i].decks.size(); j++)
                 {
                     std::cout << "\nDeck: ";
-                    SetConsoleTextAttribute(hConsole, 11);
+                    SetConsoleTextAttribute(hConsole, CON_CYN);
 
                     std::cout << players[i].decks[j].first;
-                    SetConsoleTextAttribute(hConsole, 6);
+                    SetConsoleTextAttribute(hConsole, CON_YLW);
                     std::cout << ": " << players[i].decks[j].second;
 
                     if (compareAll == "y")//looking for matches in deck name/content from current list of replays
@@ -457,9 +467,9 @@ int main()
                             std::cout << "\nDeck name match\n";
                             for (int l = 0; l < SameDeckName.size(); l++)
                             {
-                                SetConsoleTextAttribute(hConsole, 4);
+                                SetConsoleTextAttribute(hConsole, CON_RED);
                                 std::cout << "\n" << SameDeckName[l].name << " (" << SameDeckName[l].id << ") ";
-                                SetConsoleTextAttribute(hConsole, 6);
+                                SetConsoleTextAttribute(hConsole, CON_YLW);
                                 std::cout << SameDeckName[l].DeckContent;
                             }
                         }
@@ -469,9 +479,9 @@ int main()
                             std::cout << "\nDeck content match\n";
                             for (int l = 0; l < SameDeckCont.size(); l++)
                             {
-                                SetConsoleTextAttribute(hConsole, 4);
+                                SetConsoleTextAttribute(hConsole, CON_RED);
                                 std::cout << "\n" << SameDeckCont[l].name << " (" << SameDeckCont[l].id << ") ";
-                                SetConsoleTextAttribute(hConsole, 6);
+                                SetConsoleTextAttribute(hConsole, CON_YLW);
                                 std::cout << SameDeckCont[l].DeckName;
                             }
                         }
@@ -479,7 +489,7 @@ int main()
                 }
             }
         }
-        SetConsoleTextAttribute(hConsole, 7);
+        SetConsoleTextAttribute(hConsole, CON_DEF);
         std::cout << "\n\ninput \"1\" to restart, \"0\" to exit: ";
         std::cin >> restart;
     }
